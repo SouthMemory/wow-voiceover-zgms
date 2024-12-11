@@ -1,9 +1,10 @@
-# VoiceOver for World of Warcraft specialized for 战歌魔兽 and 中文语音包
+# VoiceOver for World of Warcraft specialized for 战歌魔兽 with 中文语音包
 
 ## 和原版本有何不同
 
 ### 提供中文语音包下载
-- 提供中文语音包下载
+- 百度网盘：https://pan.baidu.com/s/1jPWSehhTUhkK1GYtGhLb7w 提取码: zgms
+- Q群：948016495
 
 ### 增加一些配置
 - 3.35版本默认为使用音乐声道进行播放
