@@ -1,5 +1,5 @@
 import requests
-import os
+import os,time
 import pandas as pd
 from tqdm import tqdm
 import hashlib
@@ -110,6 +110,9 @@ class TTSProcessor:
             "xi-api-key": ELEVENLABS_API_KEY
         }
 
+        print(url)
+        print(payload)
+
         response = requests.post(url, json=payload, headers=headers)
 
         if response.status_code == 200 and response.headers["Content-Type"] == "audio/mpeg":
@@ -211,6 +214,10 @@ class TTSProcessor:
                 for row, custom_message in zip(df.iterrows(), executor.map(row_proccesing_fn, df.itertuples())):
                     pbar.set_postfix_str(custom_message)
                     pbar.update(1)
+                    if custom_message == "":
+                        print(row)
+                        print(custom_message)
+                        time.sleep(5)
 
 
     def write_gossip_file_lookups_table(self, df, module_name, type, table, filename):
@@ -340,7 +347,7 @@ class TTSProcessor:
 
     def tts_dataframe(self, df, selected_voices):
         self.create_output_dirs()
-        self.process_rows_in_parallel(df, self.process_row, selected_voices, max_workers=5)
+        self.process_rows_in_parallel(df, self.process_row, selected_voices, max_workers=1)
         print("Audio finished generating.")
 
     def generate_lookup_tables(self, df):

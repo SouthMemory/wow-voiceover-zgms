@@ -1,11 +1,20 @@
+# 导入 argparse 模块，用于解析命令行参数
 import argparse
+# 从 prompt_toolkit.shortcuts 模块中导入对话框功能，用于用户交互
 from prompt_toolkit.shortcuts import checkboxlist_dialog, radiolist_dialog, yes_no_dialog
+# 从 tts_cli.sql_queries 模块导入查询函数，用于从数据库中提取任务和对话内容
 from tts_cli.sql_queries import query_dataframe_for_all_quests_and_gossip, query_dataframe_for_area
+# 从 tts_cli.tts_utils 模块导入 TTSProcessor 类，用于处理文本到语音的转换
 from tts_cli.tts_utils import TTSProcessor
+# 从 tts_cli.init_db 模块导入数据库初始化相关函数
 from tts_cli.init_db import download_and_extract_latest_db_dump, import_sql_files_to_database
+# 从 tts_cli.consts 模块导入常量和工具函数，包含种族和性别的映射字典
 from tts_cli.consts import RACE_DICT_INV, GENDER_DICT_INV, race_gender_tuple_to_strings
+# 从 tts_cli.wrath_model_extraction 模块导入数据写入函数，用于提取和保存角色模型数据
 from tts_cli.wrath_model_extraction import write_model_data
+# 从 tts_cli.zone_selector 模块导入区域选择器类，用于选择不同大陆的区域
 from tts_cli.zone_selector import KalimdorZoneSelector, EasternKingdomsZoneSelector
+# 从 tts_cli 模块导入实用工具函数
 from tts_cli import utils
 
 
