@@ -659,234 +659,264 @@ end
 if Version.IsLegacyBurningCrusade or Version.IsLegacyWrath then
 
     function Utils:IsSoundEnabled()
+        -- 检查所有声音是否启用
         if tonumber(GetCVar("Sound_EnableAllSound")) ~= 1 then
-            return false
+            return false -- 如果所有声音未启用，返回false
         end
+        -- 返回是否在音乐通道上启用播放或特效声音是否启用
         return Addon.db.profile.LegacyWrath.PlayOnMusicChannel.Enabled or tonumber(GetCVar("Sound_EnableSFX")) == 1
     end
 
     function Utils:TestSound(soundData)
-        return true
+        return true -- 测试声音的占位符功能，始终返回true
     end
 
     function Utils:GetCurrentModelSet()
+        -- 根据用户设置返回当前模型集（高清或原版）
         return Addon.db.profile.LegacyWrath.HDModels and "HD" or "Original"
     end
 
     --[[
-        Here begins the code the plays the VO over music channel in order to support the ability to pause/stop the VO.
-        2.4.3's and 3.3.5's PlaySound/PlaySoundFile cannot be stopped by any means short of restarting the whole sound system (freezes the client for a couple of seconds).
-        But PlayMusic can be stopped with StopMusic. This, however, causes the currently played script music to fade out instead of cutting,
-            which is a problem, because by letting this happen we'll hear the VO looping until it fully fades out. This can be worked around
-            by PlayMusic'ing another file (even one that doesn't exist), as that causes the script music to be instantly interrupted.
-        Toggling Sound_EnableMusic cvar off-and-on additionally allows us to interrupt the current in-game background music.
-        The whole process looks as follows:
-        1. Sound queue requests to start playing the VO by calling Utils:PlaySound
-        2. Music volume is smoothly lowered to 0 over the config.FadeOutMusic duration
-        3. In-game background music is instantly stopped by toggling Sound_EnableMusic cvar off-and-on
-        4. Music volume is instantly changed to config.Volume level
-        5. VO sound file is played on the music channel
-        6. Once the VO's duration has ran out (soundData.stopSoundTimer) - silence.wav is played as music to instantly stop the VO and prevent it from looping
-        7. Sound queue requests to stop playing the VO by calling Utils:StopSound (either due to pause or soundData being removed from the queue) - silence.wav is played again to interrupt the VO in case it hasn't finished playing naturally
-        8. Music volume is instantly changed to 0
-        9. Music volume is smoothly raised to back to the pre-VO level over the config.FadeOutMusic duration
-        10. In-game background music is removed by calling StopMusic()
+            下面开始播放语音（VO）通过音乐通道的代码，以支持暂停/停止语音的功能。
+            在2.4.3和3.3.5版本中，PlaySound/PlaySoundFile无法通过任何方式停止，除非重新启动整个声音系统（这会导致客户端冻结几秒）。
+            而PlayMusic可以通过StopMusic停止。但是，这会导致当前正在播放的脚本音乐淡出而不直接停止，
+                这会造成一个问题，因为这样会导致我们听到语音循环直到完全淡出。这个问题可以通过播放另一个音频文件（甚至是不存在的文件）来解决，
+                因为这样可以立即中断脚本音乐。
+            切换Sound_EnableMusic的cvar的开关状态也允许我们中断当前游戏中的背景音乐。
+            整个过程如下：
+            1. 声音队列通过调用Utils:PlaySound请求开始播放语音
+            2. 音乐音量在config.FadeOutMusic的持续时间内平滑降低到0
+            3. 通过切换Sound_EnableMusic的cvar的开关状态，立即停止游戏中的背景音乐
+            4. 音乐音量立即改变为config.Volume的水平
+            5. 语音音频文件在音乐通道播放
+            6. 一旦语音的持续时间结束（soundData.stopSoundTimer），silence.wav将作为音乐播放，以立即停止语音并防止其循环播放
+            7. 声音队列请求停止播放语音，通过调用Utils:StopSound（无论是由于暂停还是soundData被从队列移除）- silence.wav再次播放，以中断语音，以防它尚未自然停止播放
+            8. 音乐音量立即变为0
+            9. 音乐音量平滑地提高回到语音播放前的水平，持续时间为config.FadeOutMusic
+            10. 通过调用StopMusic()停止游戏中的背景音乐
 
-        On 2.4.3 steps 2 and 3 are swapped, because 3.3.5's trick to instantly stop music by toggling cvars causes it to instead
-            fade out over a short time on 2.4.3 (around 0.4-0.5 secs). So we lock config.FadeOutMusic to 0.5 secs let the client
-            fade music out naturally during these 0.5 seconds, after which we bump the volume up and proceed as normal.
+            在2.4.3版本中，步骤2和3的顺序是互换的，因为3.3.5中的通过切换cvars立即停止音乐的技巧导致在2.4.3中反而出现短暂淡出（约0.4-0.5秒）。因此我们将config.FadeOutMusic锁定为0.5秒，使客户端在这0.5秒内自然淡出音乐，之后我们再提高音量并按正常流程进行。
     ]]
     local function GetCurrentVolume()
+        -- 获取当前音乐音量，默认值为1
         return tonumber(GetCVar("Sound_MusicVolume")) or 1
     end
+
     local function PlaySilence()
+        -- 播放静音音效，阻止其他VO声音的循环播放
         PlayMusic([[Interface\AddOns\AI_VoiceOver\Sounds\silence.wav]])
     end
 
     -- Functions that deal with temporarily changing player's sound settings to utilize the music channel for VO playback
-    local prev_Sound_EnableMusic
-    local prev_Sound_MusicVolume
+    local prev_Sound_EnableMusic -- 保存之前的音乐启用状态
+    local prev_Sound_MusicVolume -- 保存之前的音乐音量
+
     local function ReplaceCVars()
+        -- 替换当前音频设置以启用音乐通道
         if prev_Sound_EnableMusic == nil then
-            prev_Sound_EnableMusic = GetCVar("Sound_EnableMusic")
+            prev_Sound_EnableMusic = GetCVar("Sound_EnableMusic") -- 获取并保存当前音频设置
             prev_Sound_MusicVolume = GetCVar("Sound_MusicVolume")
-            SetCVar("Sound_EnableMusic", 1)
+            SetCVar("Sound_EnableMusic", 1) -- 启用音乐
         end
     end
+
     local function RestoreCVars()
+        -- 恢复之前的音频设置
         if prev_Sound_EnableMusic ~= nil then
-            SetCVar("Sound_EnableMusic", prev_Sound_EnableMusic)
-            SetCVar("Sound_MusicVolume", prev_Sound_MusicVolume)
-            prev_Sound_EnableMusic = nil
+            SetCVar("Sound_EnableMusic", prev_Sound_EnableMusic) -- 恢复音乐启用状态
+            SetCVar("Sound_MusicVolume", prev_Sound_MusicVolume) -- 恢复音乐音量
+            prev_Sound_EnableMusic = nil -- 清空保存的状态
             prev_Sound_MusicVolume = nil
         end
     end
 
     -- Functions that deal with smoothly changing the music channel's volume to avoid abrupt changes
-    local slideVolumeTarget
-    local slideVolumeRate
-    local slideVolumeCallback
-    local EPS_VOLUME = 0.01
+    local slideVolumeTarget -- 目标音量
+    local slideVolumeRate -- 音量变化速率
+    local slideVolumeCallback -- 音量变化完成后的回调函数
+    local EPS_VOLUME = 0.01 -- 允许的音量精度误差
+
     local function GetMusicFadeOutDuration()
+        -- 获取音乐淡出持续时间，如果音乐已关闭或音量为0，则返回0
         if tonumber(prev_Sound_EnableMusic) == 0 or tonumber(prev_Sound_MusicVolume) == 0 then
             return 0
         end
-        return Addon.db.profile.LegacyWrath.PlayOnMusicChannel.FadeOutMusic or 0
+        return Addon.db.profile.LegacyWrath.PlayOnMusicChannel.FadeOutMusic or 0 -- 获取用户设置的淡出时间
     end
+
     local function StopSlideVolume()
+        -- 停止音量滑动并重置参数
         slideVolumeTarget = nil
         slideVolumeRate = nil
         slideVolumeCallback = nil
     end
+
     local function SlideVolume(target, callback)
-        local duration = GetMusicFadeOutDuration()
+        -- 滑动音量至目标值
+        local duration = GetMusicFadeOutDuration() -- 获取淡出时间
         if duration <= 0 then
-            -- Instantly change the volume if the player had reduced the duration all the way to 0
+            -- 如果持续时间为0，则迅速改变音量
             return false
         end
-        local current = GetCurrentVolume()
+        local current = GetCurrentVolume() -- 获取当前音量
         if math.abs(target - current) <= EPS_VOLUME then
-            -- Instantly "change" the volume if it's already fuzzy-equal to the target volume, and cancel the ongoing slide volume ("remove currently played sound from queue" case)
+            -- 如果当前音量接近目标音量，则立即更改并取消滑动
             StopSlideVolume()
             return false
         end
-        -- Interpolate towards the target volume over the configured duration
-        slideVolumeTarget = target
-        slideVolumeRate = (target - current) / duration
-        slideVolumeCallback = callback
+        -- 在设定的持续时间内，从当前音量渐变到目标音量
+        slideVolumeTarget = target -- 设置目标音量
+        slideVolumeRate = (target - current) / duration -- 计算音量变化速率
+        slideVolumeCallback = callback -- 设置回调函数
         return true
     end
+
+    -- 创建音量滑动控制框架
     local volumeFrame = CreateFrame("Frame", "VoiceOverSlideVolumeFrame", UIParent)
-    volumeFrame:RegisterEvent("PLAYER_LOGOUT")
+    volumeFrame:RegisterEvent("PLAYER_LOGOUT") -- 注册玩家登出事件
     volumeFrame:HookScript("OnEvent", function(self, event)
         if event == "PLAYER_LOGOUT" then
-            StopSlideVolume()
-            RestoreCVars()
+            StopSlideVolume() -- 停止音量滑动
+            RestoreCVars() -- 恢复之前的音频设置
         end
     end)
+
     volumeFrame:HookScript("OnUpdate", function(self, elapsed)
+        -- 在每次更新时，检查并调节音量
         if slideVolumeRate then
-            local current = GetCurrentVolume()
-            local target = slideVolumeTarget
-            local next = current + slideVolumeRate * elapsed
+            local current = GetCurrentVolume() -- 获取当前音量
+            local target = slideVolumeTarget -- 获取目标音量
+            local next = current + slideVolumeRate * elapsed -- 计算下一个音量
             local finished = false
-            if math.abs(target - current) <= EPS_VOLUME or current < target and next >= target or current > target and next <= target then
-                next = target
+            -- 检查是否达到目标音量
+            if math.abs(target - current) <= EPS_VOLUME or (current < target and next >= target) or (current > target and next <= target) then
+                next = target -- 设置为目标音量
                 finished = true
             end
-            SetCVar("Sound_MusicVolume", next)
-            if finished then
+            SetCVar("Sound_MusicVolume", next) -- 更新音乐音量
+            if finished then -- 如果达到目标音量
                 if slideVolumeCallback then
-                    slideVolumeCallback()
+                    slideVolumeCallback() -- 调用完成回调
                 end
-                StopSlideVolume()
+                StopSlideVolume() -- 停止音量滑动
             end
         end
     end)
 
     function Utils:PlaySound(soundData)
-        soundData.delay = nil
+        soundData.delay = nil -- 清除延迟标记
+        -- 如果未启用音乐通道，则以普通声音播放
         if not Addon.db.profile.LegacyWrath.PlayOnMusicChannel.Enabled then
             -- Play VO as a sound, but have no ability to stop it
-            _G.PlaySoundFile(soundData.filePath)
+            _G.PlaySoundFile(soundData.filePath) -- 播放音效文件
             return
         end
 
-        soundData.handle = 1 -- Just put something here to flag the sound as stoppable
+        soundData.handle = 1 -- 设置标志以表示声音可停止
 
-        ReplaceCVars()
+        ReplaceCVars() -- 替换变量以使用音乐通道
         local function Play()
             -- Hack to instantly interrupt the music
-            SetCVar("Sound_EnableMusic", 0)
-            SetCVar("Sound_EnableMusic", 1)
+            SetCVar("Sound_EnableMusic", 0) -- 关闭音乐以中断当前音乐
+            SetCVar("Sound_EnableMusic", 1) -- 重新启用音乐
 
+            -- 设置所需的音乐音量并播放文件
             SetCVar("Sound_MusicVolume", Addon.db.profile.LegacyWrath.PlayOnMusicChannel.Volume)
-            PlayMusic(soundData.filePath)
+            PlayMusic(soundData.filePath) -- 在音乐通道播放VO文件
 
+            -- 设置定时器，播放静音音效以防止循环
             soundData.stopSoundTimer = Addon:ScheduleTimer(function()
-                PlaySilence() -- Instantly interrupt the VO sound
-            end, soundData.length)
+                PlaySilence() -- 播放静音以中断VO音效
+            end, soundData.length) -- 使用VO文件的长度作为延迟
         end
+
         if SlideVolume(0, Play) then
-            soundData.delay = GetMusicFadeOutDuration()
+            soundData.delay = GetMusicFadeOutDuration() -- 获取淡出时间
 
             if Version.IsLegacyBurningCrusade then
-                -- On 2.4.3 we ask the client to interrupt the music here and give it time to fade out naturally
+                -- 2.4.3版本中请求客户端中断音乐并自然淡出
                 SetCVar("Sound_EnableMusic", 0)
                 SetCVar("Sound_EnableMusic", 1)
-                PlaySilence()
+                PlaySilence() -- 播放静音文件
             end
         else
-            Play()
+            Play() -- 直接播放音效
         end
     end
 
     function Utils:StopSound(soundData)
         if not soundData.handle then
-            -- VO was played as a sound - we cannot stop it
+            -- 如果当作普通音效播放，则无法停止
             return
         end
 
-        Addon:CancelTimer(soundData.stopSoundTimer, true)
-        soundData.stopSoundTimer = nil
+        Addon:CancelTimer(soundData.stopSoundTimer, true) -- 取消停止定时器
+        soundData.stopSoundTimer = nil -- 清除定时器引用
 
-        PlaySilence() -- Instantly interrupt the VO sound
-        SetCVar("Sound_MusicVolume", 0)
+        PlaySilence() -- 播放静音以中断VO音效
+        SetCVar("Sound_MusicVolume", 0) -- 音乐音量设为0
 
         local function ResumeMusic()
-            StopMusic()
-            RestoreCVars()
+            StopMusic() -- 停止当前音乐
+            RestoreCVars() -- 恢复之前的音频设置
         end
+
+        -- 尝试顺滑音量恢复到之前的水平
         if not SlideVolume(tonumber(prev_Sound_MusicVolume) or 1, ResumeMusic) then
-            ResumeMusic()
+            ResumeMusic() -- 直接恢复音乐
         end
     end
 
     -- Frame fade-in animation to help alleviate the UX damage caused by delaying the VO
     hooksecurefunc(SoundQueueUI, "InitDisplay", function(self)
         local fadeIn, animation
+        -- 创建渐显动画逻辑
         if self.frame.CreateAnimationGroup then
-            fadeIn = self.frame:CreateAnimationGroup()
-            animation = fadeIn:CreateAnimation("Alpha")
-            animation:SetOrder(1)
-            animation:SetDuration(0)
-            animation:SetChange(-1)
-            animation = fadeIn:CreateAnimation("Alpha")
-            animation:SetOrder(2)
-            animation:SetDuration(1)
-            animation:SetChange(1)
-            animation:SetSmoothing("OUT")
+            fadeIn = self.frame:CreateAnimationGroup() -- 创建动画组
+            animation = fadeIn:CreateAnimation("Alpha") -- 创建透明度动画
+            animation:SetOrder(1) -- 设置动画顺序
+            animation:SetDuration(0) -- 第一阶段的持续时间
+            animation:SetChange(-1) -- 透明度变化为-1
+            animation = fadeIn:CreateAnimation("Alpha") -- 创建第二个透明度动画
+            animation:SetOrder(2) -- 设置为第二顺序
+            animation:SetDuration(1) -- 第二阶段的持续时间
+            animation:SetChange(1) -- 透明度变化为1
+            animation:SetSmoothing("OUT") -- 平滑动画
         else
-            fadeIn, animation = { frame = self.frame }, {}
+            fadeIn, animation = { frame = self.frame }, {} -- 为不支持动画的框架创建自定义实现
             function fadeIn:Stop()
-                self.frame:SetAlpha(1)
-                self.enabled = nil
+                self.frame:SetAlpha(1) -- 完全可见
+                self.enabled = nil -- 禁用
             end
             function fadeIn:Play()
-                self.frame:SetAlpha(0)
-                self.enabled = true
+                self.frame:SetAlpha(0) -- 完全透明
+                self.enabled = true -- 启用
             end
             function animation:SetDuration(duration)
-                self.duration = duration
+                self.duration = duration -- 设置动画持续时间
             end
+
+            -- 在每次更新时检查并调节透明度
             self.frame:HookScript("OnUpdate", function(self, elapsed)
                 if fadeIn.enabled then
-                    local alpha = math.min(1, self:GetAlpha() + elapsed / animation.duration)
+                    local alpha = math.min(1, self:GetAlpha() + elapsed / animation.duration) -- 更新透明度
                     if alpha >= 1 then
-                        fadeIn:Stop()
+                        fadeIn:Stop() -- 完全可见时停止
                     else
-                        self:SetAlpha(alpha)
+                        self:SetAlpha(alpha) -- 设置新的透明度
                     end
                 end
             end)
         end
+        -- 在框架显示时触发渐显动画
         self.frame:HookScript("OnShow", function()
-            fadeIn:Stop()
-            local soundData = SoundQueue:GetCurrentSound()
-            local duration = soundData and soundData.delay or 0
+            fadeIn:Stop() -- 如果显示时已在逐渐显现，停止
+            local soundData = SoundQueue:GetCurrentSound() -- 获取当前声音数据
+            local duration = soundData and sound
+            local duration = soundData and soundData.delay or 0 -- 获取声音的延迟长度，若没有则设为0
             if duration > 0 then
-                animation:SetDuration(duration)
-                fadeIn:Play()
+                animation:SetDuration(duration) -- 设置动画持续时间
+                fadeIn:Play() -- 播放渐显动画
             end
         end)
     end)
