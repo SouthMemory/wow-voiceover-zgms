@@ -1,4 +1,18 @@
-# VoiceOver for World of Warcraft
+# VoiceOver for World of Warcraft specialized for 战歌魔兽 and 中文语音包
+
+## 和原版本有何不同
+
+### 提供中文语音包下载
+- 提供中文语音包下载
+
+### 增加一些配置
+- 3.35版本默认为使用音乐声道进行播放
+- 增加配置：接受任务时，是否播放任务语音
+- 在任务追踪栏，增加语音播放按键
+- 增加配置：玩家在执行任务的过程中，系统自动识别并播放对应任务的语音
+
+
+# 下面的信息为来自于原项目
 
 ## v2: https://allvoice.ai
 Contribute voices on [allvoice.ai](https://allvoice.ai) so I can give each NPC a unique AI voicemodel to power their dialog. The top rated voice for each NPC will be used. 
