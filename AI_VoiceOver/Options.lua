@@ -55,6 +55,23 @@ local GeneralTab =
     type = "group",
     order = 10,
     args = {
+        Debug = {
+            type = "group",
+            order = 1,
+            inline = true,
+            name = "自动",
+            args = {
+                DebugEnabled = {
+                    type = "toggle",
+                    order = 1,
+                    width = 1.25,
+                    name = "接受任务时自动播放",
+                    desc = "勾选后，当在你接受任务时，将自动播放语音的信息",
+                    get = function(info) return Addon.db.profile.AutoPlayOnQuestAccept end,
+                    set = function(info, value) Addon.db.profile.AutoPlayOnQuestAccept = value end,
+                },
+            }
+        },
         MinimapButton = {
             type = "group",
             order = 2,

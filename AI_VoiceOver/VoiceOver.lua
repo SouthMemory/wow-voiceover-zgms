@@ -40,6 +40,7 @@ local defaults = {
             HDModels = false,
         },
         DebugEnabled = false,
+        AutoPlayOnQuestAccept = false,
     },
     char = {
         IsPaused = false,
