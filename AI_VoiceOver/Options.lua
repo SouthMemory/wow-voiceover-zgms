@@ -51,7 +51,7 @@ end
 ---@type AceConfigOptionsTable
 local GeneralTab =
 {
-    name = "General",
+    name = "常规",
     type = "group",
     order = 10,
     args = {
@@ -59,12 +59,13 @@ local GeneralTab =
             type = "group",
             order = 2,
             inline = true,
-            name = "Minimap Button",
+            name = "小地图按钮",
             args = {
                 MinimapButtonShow = {
                     type = "toggle",
                     order = 1,
-                    name = "Show Minimap Button",
+                    name = "显示小地图按钮",
+                    desc = "是否在小地图上显示按钮。",
                     get = function(info) return not Addon.db.profile.MinimapButton.LibDBIcon.hide end,
                     set = function(info, value)
                         Addon.db.profile.MinimapButton.LibDBIcon.hide = not value
@@ -78,7 +79,8 @@ local GeneralTab =
                 MinimapButtonLock = {
                     type = "toggle",
                     order = 2,
-                    name = "Lock Position",
+                    name = "锁定位置",
+                    desc = "防止框架被移动或调整大小。",
                     get = function(info) return Addon.db.profile.MinimapButton.LibDBIcon.lock end,
                     set = function(info, value)
                         if value then
@@ -98,24 +100,24 @@ local GeneralTab =
                         MinimapButtonLeftClick = {
                             type = "select",
                             order = 4,
-                            name = "Left Click",
-                            desc = "Action performed by left-clicking the minimap button.",
+                            name = "左键点击",
+                            desc = "左键点击小地图按钮时执行的动作。",
                             values = "values", get = "get", set = "set",
                             arg = function(value) return Addon.db.profile.MinimapButton.Commands, "LeftButton" end,
                         },
                         MinimapButtonMiddleClick = {
                             type = "select",
                             order = 4,
-                            name = "Middle Click",
-                            desc = "Action performed by middle-clicking the minimap button.",
+                            name = "中键点击",
+                            desc = "中键点击小地图按钮时执行的动作。",
                             values = "values", get = "get", set = "set",
                             arg = function(value) return Addon.db.profile.MinimapButton.Commands, "MiddleButton" end,
                         },
                         MinimapButtonRightClick = {
                             type = "select",
                             order = 4,
-                            name = "Right Click",
-                            desc = "Action performed by right-clicking the minimap button.",
+                            name = "右键点击",
+                            desc = "右键点击小地图按钮时执行的动作。",
                             values = "values", get = "get", set = "set",
                             arg = function(value) return Addon.db.profile.MinimapButton.Commands, "RightButton" end,
                         }
@@ -127,14 +129,14 @@ local GeneralTab =
             type = "group",
             order = 3,
             inline = true,
-            name = "Frame",
+            name = "框架",
             disabled = function(info) return Addon.db.profile.SoundQueueUI.HideFrame end,
             args = {
                 LockFrame = {
                     type = "toggle",
                     order = 1,
-                    name = "Lock Frame",
-                    desc = "Prevent the frame from being moved or resized.",
+                    name = "锁定框架",
+                    desc = "防止框架被移动或调整大小。",
                     get = function(info) return Addon.db.profile.SoundQueueUI.LockFrame end,
                     set = function(info, value)
                         Addon.db.profile.SoundQueueUI.LockFrame = value
@@ -144,8 +146,8 @@ local GeneralTab =
                 ResetFrame = {
                     type = "execute",
                     order = 2,
-                    name = "Reset Frame",
-                    desc = "Resets frame position and size back to default.",
+                    name = "重置框架",
+                    desc = "将框架位置和大小重置为默认值。",
                     func = function(info)
                         SoundQueueUI.frame:Reset()
                     end,
@@ -154,8 +156,8 @@ local GeneralTab =
                 FrameStrata = {
                     type = "select",
                     order = 5,
-                    name = "Frame Strata",
-                    desc = "Changes the \"depth\" of the frame, determining which other frames will it overlap or fall behind.",
+                    name = "框架层次",
+                    desc = "更改框架的“深度”，决定框架将覆盖其他框架还是位于其他框架后面。",
                     values = FRAME_STRATAS,
                     get = function(info)
                         for k, v in ipairs(FRAME_STRATAS) do
@@ -172,7 +174,7 @@ local GeneralTab =
                 FrameScale = {
                     type = "range",
                     order = 4,
-                    name = "Frame Scale",
+                    name = "框架缩放",
                     softMin = 0.5,
                     softMax = 2,
                     bigStep = 0.05,
@@ -194,10 +196,10 @@ local GeneralTab =
                 HidePortrait = {
                     type = "toggle",
                     order = 7,
-                    name = "Hide NPC Portrait",
-                    desc = "Talking NPC portrait will not appear when voice over audio is played.\n\n" ..
-                            Utils:ColorizeText("This might be useful when using other addons that replace the dialog experience, such as " ..
-                                Utils:ColorizeText("Immersion", NORMAL_FONT_COLOR_CODE) .. ".",
+                    name = "隐藏NPC头像",
+                    desc = "播放语音时不会出现对话NPC的头像。\n\n" ..
+                            Utils:ColorizeText("如果您使用其他插件替换了对话体验，例如 " ..
+                                Utils:ColorizeText("沉浸式体验", NORMAL_FONT_COLOR_CODE) .. "，这可能会很有用。",
                                 GRAY_FONT_COLOR_CODE),
                     get = function(info) return Addon.db.profile.SoundQueueUI.HidePortrait end,
                     set = function(info, value)
@@ -208,8 +210,8 @@ local GeneralTab =
                 HideFrame = {
                     type = "toggle",
                     order = 8,
-                    name = "Hide Entirely",
-                    desc = "Play voiceovers without ever displaying the frame.",
+                    name = "完全隐藏",
+                    desc = "播放语音时不显示框架。",
                     disabled = false,
                     get = function(info) return Addon.db.profile.SoundQueueUI.HideFrame end,
                     set = function(info, value)
@@ -223,14 +225,14 @@ local GeneralTab =
             type = "group",
             order = 4,
             inline = true,
-            name = "Audio",
+            name = "音频",
             args = {
                 SoundChannel = Version:IsRetailOrAboveLegacyVersion(40000) and {
                     type = "select",
                     width = 0.75,
                     order = 1,
-                    name = "Sound Channel",
-                    desc = "Controls which sound channel VoiceOver will play in.",
+                    name = "声音通道",
+                    desc = "控制VoiceOver将在哪个声音通道播放。",
                     values = Enums.SoundChannel:GetValueToNameMap(),
                     get = function(info) return Addon.db.profile.Audio.SoundChannel end,
                     set = function(info, value)
@@ -243,13 +245,13 @@ local GeneralTab =
                     type = "select",
                     width = 1.1,
                     order = 3,
-                    name = "NPC Greeting Playback Frequency",
-                    desc = "Controls how often VoiceOver will play NPC greeting dialog.",
+                    name = "NPC问候播放频率",
+                    desc = "控制VoiceOver播放NPC问候对话的频率。",
                     values = {
-                        [Enums.GossipFrequency.Always] = "Always",
-                        [Enums.GossipFrequency.OncePerQuestNPC] = "Play Once for Quest NPCs",
-                        [Enums.GossipFrequency.OncePerNPC] = "Play Once for All NPCs",
-                        [Enums.GossipFrequency.Never] = "Never",
+                        [Enums.GossipFrequency.Always] = "总是",
+                        [Enums.GossipFrequency.OncePerQuestNPC] = "对于任务NPC只播放一次",
+                        [Enums.GossipFrequency.OncePerNPC] = "对于所有NPC只播放一次",
+                        [Enums.GossipFrequency.Never] = "从不",
                     },
                     get = function(info) return Addon.db.profile.Audio.GossipFrequency end,
                     set = function(info, value)
@@ -261,8 +263,8 @@ local GeneralTab =
                     type = "toggle",
                     width = 2.25,
                     order = 4,
-                    name = "Mute Vocal NPCs Greetings While VoiceOver is Playing",
-                    desc = Version.IsLegacyVanilla and "Interrupts generic NPC greeting voicelines upon interacting with them if a voiceover will start playing." or "While VoiceOver is playing, the Dialog channel will be muted.",
+                    name = "VoiceOver播放时自动静音NPC问候",
+                    desc = Version.IsLegacyVanilla and "如果即将播放VoiceOver，与NPC互动时会中断通用NPC问候语音。" or "VoiceOver播放时，对话频道将被静音。",
                     disabled = function() return Version:IsRetailOrAboveLegacyVersion(60100) and Addon.db.profile.Audio.SoundChannel == Enums.SoundChannel.Dialog end,
                     get = function(info) return Addon.db.profile.Audio.AutoToggleDialog end,
                     set = function(info, value)
@@ -278,8 +280,8 @@ local GeneralTab =
                     type = "toggle",
                     order = 6,
                     width = 2,
-                    name = "Sync Dialog to Window State",
-                    desc = "VoiceOver dialog will automatically stop when the gossip/quest window is closed.",
+                    name = "同步对话窗口状态",
+                    desc = "当流言/任务窗口关闭时，VoiceOver对话将自动停止。",
                     get = function(info) return Addon.db.profile.Audio.StopAudioOnDisengage end,
                     set = function(info, value)
                         Addon.db.profile.Audio.StopAudioOnDisengage = value
@@ -291,14 +293,14 @@ local GeneralTab =
             type = "group",
             order = 5,
             inline = true,
-            name = "Debugging Tools",
+            name = "调试工具",
             args = {
                 DebugEnabled = {
                     type = "toggle",
                     order = 1,
                     width = 1.25,
-                    name = "Enable Debug Messages",
-                    desc = "Enables printing of some \"useful\" debug messages to the chat window.",
+                    name = "启用调试信息",
+                    desc = "在聊天窗口打印一些“有用”的调试信息。",
                     get = function(info) return Addon.db.profile.DebugEnabled end,
                     set = function(info, value) Addon.db.profile.DebugEnabled = value end,
                 },
@@ -310,31 +312,31 @@ local GeneralTab =
 ---@type AceConfigOptionsTable
 local LegacyWrathTab = (Version.IsLegacyWrath or Version.IsLegacyBurningCrusade or nil) and {
     type = "group",
-    name = Version.IsLegacyBurningCrusade and "2.4.3 Backport" or "3.3.5 Backport",
+    name = Version.IsLegacyBurningCrusade and "经典2.4.3" or "经典3.3.5",
     order = 19,
     args = {
         PlayOnMusicChannel = {
             type = "group",
             order = 100,
-            name = "Play Voiceovers on Music Channel",
+            name = "在音乐频道播放语音",
             inline = true,
             args = {
                 Description = {
                     type = "description",
                     order = 100,
-                    name = format("%s client lacks the ability to stop addon sounds at will. As a workaround, you can play the voiceovers on the music channel instead, which, unlike sounds, can be stopped. Regular background music will not be playing throughout the duration of voiceovers.|n|nIf you normally play with music disabled - it will be temporarily enabled during voiceovers, but no actual background music will be played.", Version.IsLegacyBurningCrusade and "2.4.3" or "3.3.5"),
+                    name = format("%s客户端缺乏随时停止插件声音的能力。作为一种变通方法，您可以将语音放在音乐频道播放，与声音不同，音乐可以被停止。在语音播放期间，常规背景音乐将不会播放。\n\n如果您通常禁用音乐 - 在语音播放期间它将被临时启用，但不会播放实际的背景音乐。", Version.IsLegacyBurningCrusade and "2.4.3" or "3.3.5"),
                 },
                 Enabled = {
                     type = "toggle",
                     order = 200,
-                    name = "Enable",
+                    name = "启用",
                     get = function(info) return Addon.db.profile.LegacyWrath.PlayOnMusicChannel.Enabled end,
                     set = function(info, value) Addon.db.profile.LegacyWrath.PlayOnMusicChannel.Enabled = value end,
                 },
                 Disabled = {
                     type = "description",
                     order = 300,
-                    name = format("With this option disabled you %swill not be able to pause|r voiceovers after they start playing. Attempting to pause will instead %1$spause the voiceover queue|r once the current sound has finished playing.", RED_FONT_COLOR_CODE),
+                    name = format("当此选项被禁用时，您%s将无法在语音开始播放后暂停语音。尝试暂停将改为%1$s在当前声音播放完毕后暂停语音队列。", RED_FONT_COLOR_CODE),
                     hidden = function(info) return Addon.db.profile.LegacyWrath.PlayOnMusicChannel.Enabled end,
                 },
                 Settings = {
@@ -347,8 +349,8 @@ local LegacyWrathTab = (Version.IsLegacyWrath or Version.IsLegacyBurningCrusade 
                         FadeOutMusic = {
                             type = "range",
                             order = 100,
-                            name = "Music Fade Out (secs)",
-                            desc = "Background music will fade out over this number of seconds before playing voiceovers. Has no effect if in-game music is disabled or muted.",
+                            name = "音乐淡出时间（秒）",
+                            desc = "背景音乐将在播放语音前在此时间内淡出。如果游戏内音乐被禁用或静音，则无效果。",
                             min = 0,
                             softMax = 2,
                             bigStep = 0.05,
@@ -359,8 +361,8 @@ local LegacyWrathTab = (Version.IsLegacyWrath or Version.IsLegacyBurningCrusade 
                         Volume = {
                             type = "range",
                             order = 200,
-                            name = "Voiceover Volume",
-                            desc = "Music channel volume will be temporarily adjusted to this value while the voiceovers are playing.",
+                            name = "语音音量",
+                            desc = "音乐频道音量将在播放语音时临时调整为此值。",
                             min = 0,
                             max = 1,
                             bigStep = 0.01,
@@ -375,14 +377,14 @@ local LegacyWrathTab = (Version.IsLegacyWrath or Version.IsLegacyBurningCrusade 
         Portraits = {
             type = "group",
             order = 200,
-            name = "Animated Portraits",
+            name = "动画肖像",
             inline = true,
             args = {
                 HDModels = {
                     type = "toggle",
                     order = 100,
-                    name = "I Have HD Models",
-                    desc = "Turn this on if you're using patches with HD character models. This will correct the animation timings for HD models of Undead and Goblin NPCs.",
+                    name = "我有高清模型",
+                    desc = "如果您使用的是带有高清角色模型的补丁，请打开此选项。这将校正亡灵和地精NPC高清模型的动画时间。",
                     get = function(info) return Addon.db.profile.LegacyWrath.HDModels end,
                     set = function(info, value) Addon.db.profile.LegacyWrath.HDModels = value end,
                 },
@@ -394,7 +396,7 @@ local LegacyWrathTab = (Version.IsLegacyWrath or Version.IsLegacyBurningCrusade 
 ---@type AceConfigOptionsTable
 local DataModulesTab =
 {
-    name = function() return format("Data Modules%s", next(Options.table.args.DataModules.args.Available.args) and "|cFF00CCFF (NEW)|r" or "") end,
+    name = function() return format("数据模块%s", next(Options.table.args.DataModules.args.Available.args) and "|cFF00CCFF (NEW)|r" or "") end,
     type = "group",
     childGroups = "tree",
     order = 20,
@@ -412,7 +414,7 @@ local DataModulesTab =
 ---@type AceConfigOptionsTable
 local SlashCommands = {
     type = "group",
-    name = "Commands",
+    name = "命令",
     order = 110,
     inline = true,
     dialogHidden = true,
@@ -420,8 +422,8 @@ local SlashCommands = {
         PlayPause = {
             type = "execute",
             order = 1,
-            name = "Play/Pause Audio",
-            desc = "Play/Pause voiceovers",
+            name = "播放/暂停音频",
+            desc = "播放或暂停语音",
             hidden = true,
             func = function(info)
                 SoundQueue:TogglePauseQueue()
@@ -430,8 +432,8 @@ local SlashCommands = {
         Play = {
             type = "execute",
             order = 2,
-            name = "Play Audio",
-            desc = "Resume the playback of voiceovers",
+            name = "播放音频",
+            desc = "继续播放语音",
             func = function(info)
                 SoundQueue:ResumeQueue()
             end
@@ -439,8 +441,8 @@ local SlashCommands = {
         Pause = {
             type = "execute",
             order = 3,
-            name = "Pause Audio",
-            desc = "Pause the playback of voiceovers",
+            name = "暂停音频",
+            desc = "暂停播放语音",
             func = function(info)
                 SoundQueue:PauseQueue()
             end
@@ -448,8 +450,8 @@ local SlashCommands = {
         Skip = {
             type = "execute",
             order = 4,
-            name = "Skip Line",
-            desc = "Skip the currently played voiceover",
+            name = "跳过台词",
+            desc = "跳过当前播放的语音",
             func = function(info)
                 local soundData = SoundQueue:GetCurrentSound()
                 if soundData then
@@ -460,8 +462,8 @@ local SlashCommands = {
         Clear = {
             type = "execute",
             order = 5,
-            name = "Clear Queue",
-            desc = "Stop the playback and clears the voiceovers queue",
+            name = "清除队列",
+            desc = "停止播放并清除语音队列",
             func = function(info)
                 SoundQueue:RemoveAllSoundsFromQueue()
             end
@@ -469,8 +471,8 @@ local SlashCommands = {
         Options = {
             type = "execute",
             order = 100,
-            name = "Open Options",
-            desc = "Open the options panel",
+            name = "打开选项",
+            desc = "打开选项面板",
             func = function(info)
                 Options:OpenConfigWindow()
             end
@@ -517,7 +519,7 @@ function Options:AddDataModule(module, order)
                 order,
                 reason and RED_FONT_COLOR_CODE or isLoaded and HIGHLIGHT_FONT_COLOR_CODE or GRAY_FONT_COLOR_CODE,
                 string.gsub(module.Title, "VoiceOver Data %- ", ""),
-                isLoaded and "" or " (not loaded)")
+                isLoaded and "" or " （未加载）")
         end,
         type = "group",
         order = order,
@@ -532,18 +534,18 @@ function Options:AddDataModule(module, order)
             NotLoadableReason = {
                 type = "description",
                 order = GetNextOrder(),
-                name = format("%sReason: |r%s%s|r", NORMAL_FONT_COLOR_CODE, RED_FONT_COLOR_CODE, reason and _G["ADDON_"..reason] or ""),
+                name = format("%s原因：|r%s%s|r", NORMAL_FONT_COLOR_CODE, RED_FONT_COLOR_CODE, reason and _G["ADDON_"..reason] or ""),
                 hidden = not reason,
             },
             Load = {
                 type = "execute",
                 order = GetNextOrder(),
-                name = "Load",
+                name = "加载",
                 hidden = function() return reason or not module.LoadOnDemand or DataModules:GetModule(module.AddonName) end,
                 func = function()
                     local loaded, reason = DataModules:LoadModule(module)
                     if not loaded then
-                        StaticPopup_Show("VOICEOVER_ERROR", format([[Failed to load data module "%s". Reason: %s]], module.AddonName, reason and _G["ADDON_" .. reason] or "Unknown"))
+                        StaticPopup_Show("VOICEOVER_ERROR", format([[无法加载数据模块 "%s"。原因：%s]], module.AddonName, reason and _G["ADDON_" .. reason] or "未知"))
                     end
                 end,
             },
@@ -565,7 +567,7 @@ function Options:AddAvailableDataModule(module, order, update)
     end
 
     DataModulesTab.args.Available.args[module.AddonName] = {
-        name = Utils:ColorizeText(format(update and "%s (Update)" or "%s", string.gsub(module.Title, "VoiceOver Data %- ", "")), "|cFF00CCFF"),
+        name = Utils:ColorizeText(format(update and "%s （更新）" or "%s", string.gsub(module.Title, "VoiceOver Data %- ", "")), "|cFF00CCFF"),
         type = "group",
         order = order,
         args = {
@@ -576,7 +578,7 @@ function Options:AddAvailableDataModule(module, order, update)
                 type = "input",
                 order = GetNextOrder(),
                 width = "full",
-                name = "Download URL",
+                name = "下载URL",
                 get = function(info) return module.URL end,
                 set = function(info) end,
             },
