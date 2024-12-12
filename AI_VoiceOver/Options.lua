@@ -248,10 +248,10 @@ local GeneralTab =
                     name = "NPC问候播放频率",
                     desc = "控制VoiceOver播放NPC问候对话的频率。",
                     values = {
-                        [Enums.GossipFrequency.Always] = "总是",
-                        [Enums.GossipFrequency.OncePerQuestNPC] = "任务NPC只播放一次",
-                        [Enums.GossipFrequency.OncePerNPC] = "所有NPC只播放一次",
-                        [Enums.GossipFrequency.Never] = "从不",
+                        [Enums.GossipFrequency.Always] = "总是问候",
+                        [Enums.GossipFrequency.OncePerQuestNPC] = "任务NPC只问候一次",
+                        [Enums.GossipFrequency.OncePerNPC] = "所有NPC只问候一次",
+                        [Enums.GossipFrequency.Never] = "从不问候",
                     },
                     get = function(info) return Addon.db.profile.Audio.GossipFrequency end,
                     set = function(info, value)
